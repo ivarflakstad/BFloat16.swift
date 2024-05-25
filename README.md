@@ -26,7 +26,7 @@ Import **BFloat16**:
 import BFloat16
 ```
 
-After importing, use the imported `Half` type excatly like you'd use Swift's builtin `Float`, `Double`, or `Float80` types. 
+After importing, use the imported `BFloat16` type exactly like you'd use Swift's builtin `Float`, `Double`, or `Float80` types. 
 
 ```swift
 func printDouble(value: BFloat16) {

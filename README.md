@@ -10,7 +10,7 @@ Inspired by floating point implementations in
 To install via the Swift Package Manager add the following line to your `Package.swift` file's `dependencies`:
 
 ```swift
-.package(url: "https://github.com/ivarflakstad/BFloat16.git", from: "1.0.0")
+.package(url: "https://github.com/ivarflakstad/BFloat16.swift.git", from: "1.0.0")
 ```
 ## Disclaimer
 

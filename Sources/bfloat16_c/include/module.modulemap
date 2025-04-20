@@ -1,0 +1,3 @@
+module bfloat16_c {
+  header "bfloat16.h"
+}

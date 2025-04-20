@@ -8,11 +8,25 @@
 import Swift
 import SwiftShims
 
+#if SWIFT_PACKAGE
+import bfloat16_c
+#endif
+
 
 @frozen
 public struct BFloat16 {
   @usableFromInline @inline(__always)
-  internal var _value: UInt16 = 0x0000
+  internal var _value: bf16_t;
+  
+  @_transparent
+  public init() {
+    _value = bf16_zero()
+  }
+  
+  @_transparent @inlinable @inline(__always)
+  init(_ value: bf16_t) {
+    _value = value
+  }
   
   @_transparent @inlinable @inline(__always)
   init(bitPattern: UInt16) {
@@ -20,27 +34,8 @@ public struct BFloat16 {
   }
   
   @usableFromInline @inline(__always)
-  func toFloat() -> Float {
-    if _fastPath(self.bitPattern & 0x7FFF <= 0x7F80) {
-      return Float(bitPattern: UInt32(self.bitPattern) << 16)
-    } else {
-      return Float(bitPattern: (UInt32(self.bitPattern) | UInt32(0x0040)) << 16)
-    }
-  }
-  
-  @usableFromInline @inline(__always)
-  static func fromFloat(_ value: Float) -> BFloat16 {
-    let x: UInt32 = value.bitPattern;
-    if _fastPath(x & 0x7FFF_FFFF <= 0x7F80_0000) {
-      let round_bit = UInt32(0x0000_8000);
-      if (x & round_bit) != 0 && (x & (3 * round_bit - 1)) != 0 {
-        return BFloat16(bitPattern: UInt16(x >> 16) + 1)
-      } else {
-        return BFloat16(bitPattern: UInt16(x >> 16))
-      }
-    } else {
-      return BFloat16(bitPattern: UInt16((x >> 16) | 0x0040))
-    }
+  func float() -> Float {
+    return to_f32(self._value);
   }
   
   @inlinable public static var one: BFloat16 {
@@ -48,7 +43,7 @@ public struct BFloat16 {
   }
   
   @inlinable public static var zero: BFloat16 {
-    BFloat16(bitPattern: 0x0000)
+    BFloat16(bf16_zero())
   }
   
   @inlinable public static var neg_one: BFloat16 {
@@ -64,6 +59,13 @@ public struct BFloat16 {
   }
 }
 
+extension bf16_t {
+  @_transparent @inlinable @inline(__always)
+  init(_ value: BFloat16) {
+    self = value._value
+  }
+}
+
 extension BFloat16: CustomStringConvertible {
   /// A textual representation of the value.
   ///
@@ -76,7 +78,7 @@ extension BFloat16: CustomStringConvertible {
     if isNaN {
       return "nan"
     }
-    return toFloat().description
+    return float().description
   }
 }
 
@@ -90,41 +92,43 @@ extension BFloat16: CustomDebugStringConvertible {
     if isNaN {
       return "nan"
     }
-    return toFloat().debugDescription
+    return float().debugDescription
   }
 }
 
 extension BFloat16: TextOutputStreamable {
   public func write<Target>(to target: inout Target) where Target: TextOutputStream {
-    toFloat().write(to: &target)
+    float().write(to: &target)
   }
 }
 
 extension BFloat16: AdditiveArithmetic {
   public static func + (lhs: BFloat16, rhs: BFloat16) -> BFloat16 {
-    BFloat16(lhs.toFloat() + rhs.toFloat())
+    BFloat16(bf16_add(bf16_t(lhs), bf16_t(rhs)))
   }
   
   
   public static func - (lhs: BFloat16, rhs: BFloat16) -> BFloat16 {
-    BFloat16(lhs.toFloat() - rhs.toFloat())
+    BFloat16(bf16_sub(bf16_t(lhs), bf16_t(rhs)))
   }
 }
 
 extension BFloat16: ExpressibleByIntegerLiteral {
   public init(integerLiteral value: UInt16) {
-    _value = value;
+    self = BFloat16(Float(value))
   }
 }
 
 extension BFloat16: ExpressibleByFloatLiteral {
   public typealias FloatLiteralType = Float
   
-  @_transparent
+  @_transparent @inlinable @inline(__always)
   public init(floatLiteral value: Float) {
-    self = BFloat16.fromFloat(value)
+    self = BFloat16(value)
   }
 }
+
+
 
 extension BFloat16: Numeric {
   public init?<T>(exactly source: T) where T : BinaryInteger {
@@ -136,11 +140,21 @@ extension BFloat16: Numeric {
   }
   
   public static func * (lhs: BFloat16, rhs: BFloat16) -> BFloat16 {
-    BFloat16(lhs.toFloat() * rhs.toFloat())
+    BFloat16(bf16_mul(bf16_t(lhs), bf16_t(rhs)))
   }
   
   public static func *= (lhs: inout BFloat16, rhs: BFloat16) {
-    lhs = BFloat16(lhs.toFloat() * rhs.toFloat())
+    lhs = lhs * rhs
+  }
+}
+
+extension BFloat16: SignedNumeric {
+  prefix public static func - (operand: BFloat16) -> BFloat16 {
+    BFloat16(bf16_neg(bf16_t(operand)))
+  }
+ 
+  mutating public func negate() {
+    self = -self
   }
 }
 
@@ -203,15 +217,8 @@ extension BFloat16: BinaryFloatingPoint {
   }
   
   @inlinable @inline(__always)
-  public init(_ other: Float) {
-    if _slowPath(other.isInfinite) {
-      let infinity = BFloat16.infinity
-      self = BFloat16(sign: other.sign, exponentBitPattern: infinity.exponentBitPattern, significandBitPattern: infinity.significandBitPattern)
-    } else if _slowPath(other.isNaN) {
-      self = .nan
-    } else {
-      self = BFloat16.fromFloat(other)
-    }
+  public init(_ value: Float) {
+    self = BFloat16(bf16_from(value));
   }
   
   
@@ -259,7 +266,7 @@ extension BFloat16: BinaryFloatingPoint {
   }
   
   @inlinable public static var nan: BFloat16 {
-    BFloat16(bitPattern: 0xFFC1)
+    BFloat16(bf16_nan())
   }
   
   @inlinable public static var signalingNaN: BFloat16 {
@@ -405,49 +412,47 @@ extension BFloat16: BinaryFloatingPoint {
   }
   
   public mutating func round(_ rule: FloatingPointRoundingRule) {
-    var f = toFloat()
+    var f = Float(self)
     f.round(rule)
     self = BFloat16(f)
   }
   
-  public static func /= (lhs: inout BFloat16, rhs: BFloat16) {
-    lhs = BFloat16(lhs.toFloat() / rhs.toFloat())
+  public static func / (lhs: BFloat16, rhs: BFloat16) -> BFloat16 {
+    BFloat16(bf16_div(bf16_t(lhs), bf16_t(rhs)))
   }
   
-  public static func / (lhs: BFloat16, rhs: BFloat16) -> BFloat16 {
-    BFloat16(lhs.toFloat() / rhs.toFloat())
+  public static func /= (lhs: inout BFloat16, rhs: BFloat16) {
+    lhs = lhs / rhs
   }
   
   @inlinable @inline(__always) public mutating func formRemainder(dividingBy other: BFloat16) {
-    self = BFloat16(_stdlib_remainderf(toFloat(), other.toFloat()))
+    self = BFloat16(_stdlib_remainderf(Float(self), Float(other)))
   }
   
   @inlinable @inline(__always) public mutating func formTruncatingRemainder(dividingBy other: BFloat16) {
-    var f = toFloat()
-    f.formTruncatingRemainder(dividingBy: other.toFloat())
+    var f = Float(self)
+    f.formTruncatingRemainder(dividingBy: Float(other))
     self = BFloat16(f)
   }
   
   @_transparent public mutating func formSquareRoot() {
-    self = BFloat16(_stdlib_squareRootf(toFloat()))
+    self = BFloat16(bf16_sqrt(bf16_t(self)))
   }
   
   public mutating func addProduct(_ lhs: BFloat16, _ rhs: BFloat16) {
-    var f = toFloat()
-    f.addProduct(lhs.toFloat(), rhs.toFloat())
-    self = BFloat16(f)
+    self = BFloat16(bf16_fma(bf16_t(lhs), bf16_t(rhs), bf16_t(self)))
   }
   
   public func isEqual(to other: BFloat16) -> Bool {
-    toFloat() == other.toFloat()
+    equal(bf16_t(self), bf16_t(other))
   }
   
   public func isLess(than other: BFloat16) -> Bool {
-    toFloat() < other.toFloat()
+    lt(bf16_t(self), bf16_t(other))
   }
   
   public func isLessThanOrEqualTo(_ other: BFloat16) -> Bool {
-    toFloat() <= other.toFloat()
+    lte(bf16_t(self), bf16_t(other))
   }
   
   @inlinable public var isNormal: Bool {
@@ -474,12 +479,12 @@ extension BFloat16: BinaryFloatingPoint {
   }
   @inlinable public var isInfinite: Bool {
     @inline(__always) get {
-      return !isFinite && significandBitPattern == 0
+      return bitPattern & 0x7FFF == 0x7F80
     }
   }
   @inlinable public var isNaN: Bool {
     @inline(__always) get {
-      return !isFinite && significandBitPattern != 0
+      return bitPattern & 0x7FFF > 0x7F80
     }
   }
   
@@ -532,7 +537,7 @@ extension BFloat16: Codable {
     let container = try decoder.singleValueContainer()
     let float = try container.decode(Float.self)
     
-    guard float.isInfinite || float.isNaN || abs(float) <= BFloat16.greatestFiniteMagnitude.toFloat() else {
+    guard float.isInfinite || float.isNaN || abs(float) <= BFloat16.greatestFiniteMagnitude.float() else {
       throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: container.codingPath, debugDescription: "Parsed number \(float) does not fit in \(type(of: self))."))
     }
     
@@ -555,7 +560,7 @@ extension BFloat16: Codable {
   @_transparent
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
-    try container.encode(toFloat())
+    try container.encode(float())
   }
 }
 

@@ -31,13 +31,20 @@ import PackageDescription
 let package = Package(
   name: "BFloat16",
   products: [
-    .library(name: "BFloat16", targets: ["BFloat16"]),
+    .library(name: "BFloat16", targets: ["BFloat16", "bfloat16_c"]),
   ],
   dependencies: [
     .package(url: "https://github.com/typelift/SwiftCheck.git", from: "0.12.0")
   ],
   targets: [
-    .target(name: "BFloat16"),
+    .target(name: "bfloat16_c"),
+    .target(
+      name: "BFloat16",
+      dependencies: ["bfloat16_c"],
+      cSettings: [
+        .unsafeFlags(["-target-feature +bf16"])
+      ]
+    ),
     .testTarget(
       name: "BFloat16Tests",
       dependencies: ["BFloat16", "SwiftCheck"]

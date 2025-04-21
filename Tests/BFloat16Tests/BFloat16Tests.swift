@@ -26,14 +26,14 @@ enum UnaryOp: CaseIterable {
   var id: Self {
     return self
   }
-  case neg, abs, sqrt
+  case neg, abs, sqrt, round
 }
 
 enum BinaryOp: CaseIterable {
   var id: Self {
     return self
   }
-  case add, sub, mul, div
+  case add, sub, mul, div, remainder
 }
 
 enum TernaryOp: CaseIterable {
@@ -41,6 +41,13 @@ enum TernaryOp: CaseIterable {
     return self
   }
   case fma
+}
+
+enum OrdOp: CaseIterable {
+  var id: Self {
+    return self
+  }
+  case gt, gte, lt, lte
 }
 
 extension UnaryOp : Arbitrary {
@@ -67,6 +74,14 @@ extension TernaryOp : Arbitrary {
   }
 }
 
+extension OrdOp : Arbitrary {
+  public static var arbitrary : Gen<OrdOp> {
+    return Gen.sized {
+      n in Gen<OrdOp>.fromElements(of:OrdOp.allCases)
+    }
+  }
+}
+
 final class BFloat16Tests: XCTestCase {
   func testFloatInit() {
     XCTAssertEqual(Float(), Float(BFloat16()))
@@ -89,17 +104,17 @@ final class BFloat16Tests: XCTestCase {
   
   func testToFloat() {
     let exact = BFloat16(7.0)
-    XCTAssertEqual(exact.float(), 7.0)
+    XCTAssertEqual(Float(exact), 7.0)
     
     // 7.1 is NOT exactly representable in 16-bit, it's rounded
     let inexact = BFloat16(7.1)
-    let diff = abs(inexact.float() - 7.1)
+    let diff = abs(Float(inexact) - 7.1)
     // diff must be <= 4 * EPSILON, as 7 has two more significant bits than 1
-    XCTAssert(diff <= 4.0 * BFloat16.epsilon.float());
+    XCTAssert(diff <= 4.0 * Float(BFloat16.epsilon));
     
     let tinyFloat = Float(bitPattern: 0x0001_0000);
-    XCTAssertEqual(BFloat16(bitPattern: 0x0001).float(), tinyFloat)
-    XCTAssertEqual(BFloat16(bitPattern: 0x0005).float(), 5.0 * tinyFloat)
+    XCTAssertEqual(Float(BFloat16(bitPattern: 0x0001)), tinyFloat)
+    XCTAssertEqual(Float(BFloat16(bitPattern: 0x0005)), 5.0 * tinyFloat)
     
     XCTAssertEqual(BFloat16(bitPattern: 0x0001), BFloat16(tinyFloat))
     XCTAssertEqual(BFloat16(bitPattern: 0x0005), BFloat16(5.0 * tinyFloat))
@@ -168,7 +183,7 @@ final class BFloat16Tests: XCTestCase {
   
   func testRoundtripIdentity() {
     property("BFloat16 roundtrip identity check") <- forAll { (val: BFloat16) in
-      let roundtrip = BFloat16(val.float());
+      let roundtrip = BFloat16(Float(val));
       if val.isNaN{
         return roundtrip.isNaN && val.sign == roundtrip.sign
       } else {
@@ -177,43 +192,64 @@ final class BFloat16Tests: XCTestCase {
     }
   }
   
-  func testUnaryOperations() {
+  func testUnaryOperations() {    
     property("BFloat16 unary ops") <- forAll {
       (a: BFloat16, op: UnaryOp) in
       switch op {
       case .neg:
-        return -a == BFloat16(-a.float())
+        return -a == BFloat16(-Float(a))
       case .abs:
-        return abs(a) == BFloat16(abs(a.float()))
+        return abs(a) == BFloat16(abs(Float(a)))
       case .sqrt:
-        return a.squareRoot() == BFloat16(a.float().squareRoot())
+        return a.squareRoot() == BFloat16(Float(a).squareRoot())
+      case .round:
+        return a.rounded() == BFloat16(Float(a).rounded())
       }
     }
   }
   
-  func testBinaryOperations() {
-    property("BFloat16 binary ops") <- forAll {
-      (a: BFloat16, b: BFloat16, op: BinaryOp) in
-      switch op {
-      case .add:
-        return a + b == BFloat16(a.float() + b.float())
-      case .sub:
-        return a - b == BFloat16(a.float() - b.float())
-      case .mul:
-        return a * b == BFloat16(a.float() * b.float())
-      case .div:
-        guard _fastPath(b != 0.0) else { return true }
-        return a / b == BFloat16(a.float() / b.float())
+    func testBinaryOperations() {
+      property("BFloat16 binary ops") <- forAll {
+        (a: BFloat16, b: BFloat16, op: BinaryOp) in
+        switch op {
+        case .add:
+          return a + b == BFloat16(Float(a) + Float(b))
+        case .sub:
+          return a - b == BFloat16(Float(a) - Float(b))
+        case .mul:
+          return a * b == BFloat16(Float(a) * Float(b))
+        case .div:
+          guard _fastPath(b != 0.0) else { return true }
+          return a / b == BFloat16(Float(a) / Float(b))
+        case .remainder:
+          guard _fastPath(b != 0.0) else { return true }
+          return a.remainder(dividingBy: b) == BFloat16(Float(a).remainder(dividingBy: Float(b)))
+        }
       }
     }
-  }
   
   func testTernaryOperations() {
     property("BFloat16 ternary ops") <- forAll {
       (a: BFloat16, b: BFloat16, c: BFloat16, op: TernaryOp) in
       switch op {
       case .fma:
-        return a.addingProduct(b, b) == BFloat16(a.float().addingProduct(b.float(), b.float()))
+        return a.addingProduct(b, b) == BFloat16(Float(a).addingProduct(Float(b), Float(b)))
+      }
+    }
+  }
+  
+  func testOredering() {
+    property("BFloat16 binary ops") <- forAll {
+      (a: BFloat16, b: BFloat16, op: OrdOp) in
+      switch op {
+      case .gt:
+        return (a > b) == (Float(a) > Float(b))
+      case .gte:
+        return (a >= b) == (Float(a) >= Float(b))
+      case .lt:
+        return (a < b) == (Float(a) < Float(b))
+      case .lte:
+        return (a <= b) == (Float(a) <= Float(b))
       }
     }
   }

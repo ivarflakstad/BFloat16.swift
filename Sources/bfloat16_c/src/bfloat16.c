@@ -21,9 +21,10 @@
 #   define PROMOTE_UNSIGNED(x) x
 #endif
 
-#define BF16_NAN 0xFFC1
+#define BF16_NAN 0x7FC0
 #define BF16_SIG_NAN 0xFF81
 #define BF16_INF 0x7F80
+#define BF16_NEG_INF 0xFF80
 #define BF16_GREATEST_FIN_MAGNITUDE 0x7F7F
 #define BF16_ZERO 0x0000
 #define BF16_ONE 0x3F80
@@ -32,22 +33,10 @@
 #define BF16_PI 0x4049
 #define BF16_EPSILON 0x3C00
 
-#ifdef __ARM_NEON
-#include <arm_neon.h>
-#endif
-
-#ifdef __ARM_NEON
-EXTERN_C BF16_FUNC bf16_t bf16_zero(void) { return 0.0; };
-EXTERN_C BF16_FUNC bf16_t bf16_epsilon(void) { return (bf16_t)BF16_EPSILON; };
-EXTERN_C BF16_FUNC bf16_t bf16_pi(void) { return (bf16_t)BF16_PI; };
-EXTERN_C BF16_FUNC bf16_t bf16_nan(void) { return (bf16_t)BF16_NAN; };
-
-#else
 EXTERN_C BF16_FUNC bf16_t bf16_zero(void) { return BF16_ZERO; };
 EXTERN_C BF16_FUNC bf16_t bf16_epsilon(void) { return BF16_EPSILON; };
 EXTERN_C BF16_FUNC bf16_t bf16_pi(void) { return BF16_PI; };
 EXTERN_C BF16_FUNC bf16_t bf16_nan(void) { return BF16_NAN; };
-#endif
 
 union float_bits {
   float f;
@@ -55,21 +44,10 @@ union float_bits {
 };
 
 EXTERN_C BF16_OFUNC bf16_t bf16_from(const float v) {
-#ifdef __ARM_NEON
-  const uint32_t *fromptr = (const uint32_t *)&v;
-  uint16_t result;
-  __asm __volatile("ldr    s0, [%[fromptr]]\n"
-                   ".inst    0x1e634000\n" // BFCVT h0, s0
-                   "str    h0, [%[toptr]]\n"
-                   :
-                   : [fromptr] "r"(fromptr), [toptr] "r"(&result)
-                   : "v0", "memory");
-  return result;
-#else
   if (isnan(v)) {
-    return BF16_NAN;
+    return signbit(v) ? BF16_SIG_NAN : BF16_NAN;
   } else if (isinf(v)) {
-    return BF16_INF;
+    return signbit(v) ? BF16_NEG_INF : BF16_INF;
   } else {
     union float_bits fb;
     fb.f = v;
@@ -84,16 +62,15 @@ EXTERN_C BF16_OFUNC bf16_t bf16_from(const float v) {
       return (fb.u >> 16) | 0x0040;
     }
   }
-#endif
 };
+
 EXTERN_C BF16_OFUNC bf16_t bf16_from(const double v) { return bf16_from((float)v); };
 
-EXTERN_C BF16_FUNC float to_f32(const bf16_t val) {
-#ifdef __ARM_NEON
-  uint16_t v = (uint16_t)val;
+EXTERN_C BF16_FUNC float to_f32(const bf16_t v) {
+#if NATIVE_BF16_SUPPORT
+  return (float)v;
 #else
-  bf16_t v = val;
-#endif
+  
   if (v == BF16_NAN) {
     return NAN;
   } else if (v == BF16_INF) {
@@ -108,6 +85,7 @@ EXTERN_C BF16_FUNC float to_f32(const bf16_t val) {
       return fb.f;
     }
   }
+#endif
 }
 
 EXTERN_C BF16_FUNC double to_f64(const bf16_t v) {
@@ -123,19 +101,23 @@ EXTERN_C BF16_FUNC bf16_t bf16_fma(const bf16_t a, const bf16_t b, const bf16_t 
 }
 
 EXTERN_C BF16_FUNC bf16_t bf16_neg(const bf16_t v) {
-#ifdef __ARM_NEON
+#if NATIVE_BF16_SUPPORT
   return -v;
 #else
   return v ^ 0x8000;
 #endif
 }
 EXTERN_C BF16_FUNC bf16_t bf16_abs(const bf16_t v) {
-#ifdef __ARM_NEON
-  return (bf16_t)((uint16_t) v & 0x7FFF);
+#if NATIVE_BF16_SUPPORT
+  return (bf16_t)fabsf((float)v);
 #else
+  if ((v & 0x8000) == 0) {
+    return v;
+  }
   return v & 0x7FFF;
 #endif
 }
+
 EXTERN_C BF16_FUNC bf16_t bf16_sqrt(const bf16_t v) { return bf16_from(sqrt(to_f32(v)));};
 
 EXTERN_C BF16_FUNC bool equal(const bf16_t a, const bf16_t b) { return a == b; };

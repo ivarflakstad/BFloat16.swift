@@ -33,11 +33,6 @@ public struct BFloat16 {
     _value = bitPattern
   }
   
-  @usableFromInline @inline(__always)
-  func float() -> Float {
-    return to_f32(self._value);
-  }
-  
   @inlinable public static var one: BFloat16 {
     BFloat16(bitPattern: 0x3F80)
   }
@@ -78,7 +73,7 @@ extension BFloat16: CustomStringConvertible {
     if isNaN {
       return "nan"
     }
-    return float().description
+    return Float(self).description
   }
 }
 
@@ -92,13 +87,13 @@ extension BFloat16: CustomDebugStringConvertible {
     if isNaN {
       return "nan"
     }
-    return float().debugDescription
+    return Float(self).debugDescription
   }
 }
 
 extension BFloat16: TextOutputStreamable {
   public func write<Target>(to target: inout Target) where Target: TextOutputStream {
-    float().write(to: &target)
+    Float(self).write(to: &target)
   }
 }
 
@@ -128,8 +123,6 @@ extension BFloat16: ExpressibleByFloatLiteral {
   }
 }
 
-
-
 extension BFloat16: Numeric {
   public init?<T>(exactly source: T) where T : BinaryInteger {
     self = BFloat16(source)
@@ -148,13 +141,14 @@ extension BFloat16: Numeric {
   }
 }
 
+@inlinable public func abs(_ x: BFloat16) -> BFloat16 {
+  return x.sign == .minus ? -x : x
+}
+
+
 extension BFloat16: SignedNumeric {
-  prefix public static func - (operand: BFloat16) -> BFloat16 {
-    BFloat16(bf16_neg(bf16_t(operand)))
-  }
- 
-  mutating public func negate() {
-    self = -self
+  prefix public static func - (operand: Self) -> Self {
+    return BFloat16(bf16_neg(bf16_t(operand)))
   }
 }
 
@@ -495,6 +489,16 @@ extension BFloat16: BinaryFloatingPoint {
   }
 }
 
+
+extension Float {
+  
+  @inlinable @inline(__always)
+  public init(_ value: BFloat16) {
+    self = to_f32(bf16_t(value));
+  }
+  
+}
+
 extension BFloat16: Strideable {
   public typealias Stride = BFloat16
   
@@ -537,7 +541,7 @@ extension BFloat16: Codable {
     let container = try decoder.singleValueContainer()
     let float = try container.decode(Float.self)
     
-    guard float.isInfinite || float.isNaN || abs(float) <= BFloat16.greatestFiniteMagnitude.float() else {
+    guard float.isInfinite || float.isNaN || abs(float) <= Float(BFloat16.greatestFiniteMagnitude) else {
       throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: container.codingPath, debugDescription: "Parsed number \(float) does not fit in \(type(of: self))."))
     }
     
@@ -560,7 +564,7 @@ extension BFloat16: Codable {
   @_transparent
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
-    try container.encode(float())
+    try container.encode(Float(self))
   }
 }
 

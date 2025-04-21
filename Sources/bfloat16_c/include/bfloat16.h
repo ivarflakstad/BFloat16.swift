@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
 #if !defined(EXTERN_C)
 #   if defined(__cplusplus)
 #       define EXTERN_C extern "C"
@@ -39,13 +38,44 @@
 //#define __ai static __inline__ __attribute__((__always_inline__, __nodebug__))
 //#define __aio static __inline__ __attribute__((__always_inline__, __nodebug__, __overloadable__))
 
-#ifdef __ARM_NEON
+#if !defined(__ARM_NEON)
+#define NATIVE_BF16_SUPPORT 1
+#pragma GCC push_options
+#pragma GCC target ("+nothing+bf16+nosimd")
 #include <arm_neon.h>
-typedef bfloat16_t NS_SWIFT_SENDABLE bf16_t;
+#include <arm_bf16.h>
+
+typedef bfloat16_t bf16_t;
+
+__extension__ extern __inline bfloat16_t
+__attribute__ ((__always_inline__, __gnu_inline__, __artificial__))
+_vcvth_bf16_f32 (float32_t __a)
+{
+  return vcvth_bf16_f32(__a);
+}
+
+__extension__ extern __inline float32_t
+__attribute__ ((__always_inline__, __gnu_inline__, __artificial__))
+_vcvtah_f32_bf16 (bfloat16_t __a)
+{
+  return vcvtah_f32_bf16 (__a);
+}
+
+
+#pragma GCC pop_options
+
 #else
+#define NATIVE_BF16_SUPPORT 0
+
 typedef uint16_t NS_SWIFT_SENDABLE bf16_t;
+
 #endif
 
+//#ifdef  __cplusplus
+//extern "C" {
+//#else
+//#include <stdbool.h>
+//#endif
 
 EXTERN_C BF16_FUNC bf16_t bf16_zero(void);
 EXTERN_C BF16_FUNC bf16_t bf16_epsilon(void);

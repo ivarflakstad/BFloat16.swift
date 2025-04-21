@@ -20,7 +20,7 @@ public struct BFloat16 {
   
   @_transparent
   public init() {
-    _value = bf16_zero()
+    _value = 0;
   }
   
   @_transparent @inlinable @inline(__always)
@@ -30,23 +30,23 @@ public struct BFloat16 {
   
   @_transparent @inlinable @inline(__always)
   init(bitPattern: UInt16) {
-    _value = bitPattern
+    _value = bf16_from(bitPattern)
+  }
+  
+  @inlinable public static var zero: BFloat16 {
+    BFloat16()
+  }
+  
+  @inlinable public static var neg_zero: BFloat16 {
+    BFloat16(bitPattern: 0x8000)
   }
   
   @inlinable public static var one: BFloat16 {
     BFloat16(bitPattern: 0x3F80)
   }
   
-  @inlinable public static var zero: BFloat16 {
-    BFloat16(bf16_zero())
-  }
-  
   @inlinable public static var neg_one: BFloat16 {
     BFloat16(bitPattern: 0xBF80)
-  }
-  
-  @inlinable public static var neg_zero: BFloat16 {
-    BFloat16(bitPattern: 0x8000)
   }
   
   @inlinable public static var epsilon: BFloat16 {
@@ -57,7 +57,7 @@ public struct BFloat16 {
 extension bf16_t {
   @_transparent @inlinable @inline(__always)
   init(_ value: BFloat16) {
-    self = value._value
+    self = bf16_from(value._value)
   }
 }
 
@@ -491,12 +491,10 @@ extension BFloat16: BinaryFloatingPoint {
 
 
 extension Float {
-  
   @inlinable @inline(__always)
   public init(_ value: BFloat16) {
     self = to_f32(bf16_t(value));
   }
-  
 }
 
 extension BFloat16: Strideable {

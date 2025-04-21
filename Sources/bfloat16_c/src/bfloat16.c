@@ -10,17 +10,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-
-// On Linux platforms the casting sometimes gets wacky, so we need to first promote
-// the incoming value before storing it in the __fp16 type.
-#if defined(__linux__)
-#   define PROMOTE_SIGNED(x)   (long long)x
-#   define PROMOTE_UNSIGNED(x) (unsigned long long)x
-#else
-#   define PROMOTE_SIGNED(x)   x
-#   define PROMOTE_UNSIGNED(x) x
-#endif
-
 #define BF16_NAN 0x7FC0
 #define BF16_SIG_NAN 0xFF81
 #define BF16_INF 0x7F80
@@ -33,17 +22,17 @@
 #define BF16_PI 0x4049
 #define BF16_EPSILON 0x3C00
 
-EXTERN_C BF16_FUNC bf16_t bf16_zero(void) { return BF16_ZERO; };
-EXTERN_C BF16_FUNC bf16_t bf16_epsilon(void) { return BF16_EPSILON; };
-EXTERN_C BF16_FUNC bf16_t bf16_pi(void) { return BF16_PI; };
-EXTERN_C BF16_FUNC bf16_t bf16_nan(void) { return BF16_NAN; };
+__ai bf16_t bf16_epsilon(void) { return BF16_EPSILON; };
+__ai bf16_t bf16_pi(void) { return BF16_PI; };
+__ai bf16_t bf16_nan(void) { return BF16_NAN; };
 
 union float_bits {
   float f;
   uint32_t u;
 };
 
-EXTERN_C BF16_OFUNC bf16_t bf16_from(const float v) {
+__aio bf16_t bf16_from(const float v) {
+  // TODO: ifs seem to be unecessary. Probably more performant to remove them.
   if (isnan(v)) {
     return signbit(v) ? BF16_SIG_NAN : BF16_NAN;
   } else if (isinf(v)) {
@@ -64,13 +53,15 @@ EXTERN_C BF16_OFUNC bf16_t bf16_from(const float v) {
   }
 };
 
-EXTERN_C BF16_OFUNC bf16_t bf16_from(const double v) { return bf16_from((float)v); };
+__aio bf16_t bf16_from(const double v) { return bf16_from((float)v); };
+// NOTE: without native bfloat support currently a noop
+__aio bf16_t bf16_from(const uint16_t v) { return (uint16_t)v; };
 
-EXTERN_C BF16_FUNC float to_f32(const bf16_t v) {
+__ai float to_f32(const bf16_t v) {
 #if NATIVE_BF16_SUPPORT
   return (float)v;
 #else
-  
+  // TODO: ifs seem to be unecessary. Probably more performant to remove them.
   if (v == BF16_NAN) {
     return NAN;
   } else if (v == BF16_INF) {
@@ -88,26 +79,26 @@ EXTERN_C BF16_FUNC float to_f32(const bf16_t v) {
 #endif
 }
 
-EXTERN_C BF16_FUNC double to_f64(const bf16_t v) {
-  return to_f32(v);
-}
+__ai double to_f64(const bf16_t v) { return to_f32(v); }
+extern __ai uint16_t bf16_to_ushort(const bf16_t v) { return v; }
 
-EXTERN_C BF16_FUNC bf16_t bf16_add(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) + to_f32(b)); }
-EXTERN_C BF16_FUNC bf16_t bf16_sub(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) - to_f32(b)); }
-EXTERN_C BF16_FUNC bf16_t bf16_mul(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) * to_f32(b)); }
-EXTERN_C BF16_FUNC bf16_t bf16_div(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) / to_f32(b)); }
-EXTERN_C BF16_FUNC bf16_t bf16_fma(const bf16_t a, const bf16_t b, const bf16_t c) {
+__ai bf16_t bf16_add(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) + to_f32(b)); }
+__ai bf16_t bf16_sub(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) - to_f32(b)); }
+__ai bf16_t bf16_mul(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) * to_f32(b)); }
+__ai bf16_t bf16_div(const bf16_t a, const bf16_t b) { return bf16_from(to_f32(a) / to_f32(b)); }
+__ai bf16_t bf16_fma(const bf16_t a, const bf16_t b, const bf16_t c) {
   return bf16_from(fmaf(to_f32(a), to_f32(b), to_f32(c)));
 }
 
-EXTERN_C BF16_FUNC bf16_t bf16_neg(const bf16_t v) {
+__ai bf16_t bf16_neg(const bf16_t v) {
 #if NATIVE_BF16_SUPPORT
   return -v;
 #else
   return v ^ 0x8000;
 #endif
 }
-EXTERN_C BF16_FUNC bf16_t bf16_abs(const bf16_t v) {
+
+__ai bf16_t bf16_abs(const bf16_t v) {
 #if NATIVE_BF16_SUPPORT
   return (bf16_t)fabsf((float)v);
 #else
@@ -118,12 +109,10 @@ EXTERN_C BF16_FUNC bf16_t bf16_abs(const bf16_t v) {
 #endif
 }
 
-EXTERN_C BF16_FUNC bf16_t bf16_sqrt(const bf16_t v) { return bf16_from(sqrt(to_f32(v)));};
+__ai bf16_t bf16_sqrt(const bf16_t v) { return bf16_from(sqrt(to_f32(v)));};
 
-EXTERN_C BF16_FUNC bool equal(const bf16_t a, const bf16_t b) { return a == b; };
-EXTERN_C BF16_FUNC bool lt(const bf16_t a, const bf16_t b) { return to_f32(a) < to_f32(b); };
-EXTERN_C BF16_FUNC bool lte(const bf16_t a, const bf16_t b) { return to_f32(a) <= to_f32(b); };
-EXTERN_C BF16_FUNC bool gt(const bf16_t a, const bf16_t b) { return to_f32(a) > to_f32(b); };
-EXTERN_C BF16_FUNC bool gte(const bf16_t a, const bf16_t b) { return to_f32(a) >= to_f32(b); };
-
-
+__ai bool equal(const bf16_t a, const bf16_t b) { return a == b; };
+__ai bool lt(const bf16_t a, const bf16_t b) { return to_f32(a) < to_f32(b); };
+__ai bool lte(const bf16_t a, const bf16_t b) { return to_f32(a) <= to_f32(b); };
+__ai bool gt(const bf16_t a, const bf16_t b) { return to_f32(a) > to_f32(b); };
+__ai bool gte(const bf16_t a, const bf16_t b) { return to_f32(a) >= to_f32(b); };

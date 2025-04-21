@@ -83,7 +83,7 @@ extension OrdOp : Arbitrary {
 }
 
 final class BFloat16Tests: XCTestCase {
-  func testFloatInit() {
+  func testInit() {
     XCTAssertEqual(Float(), Float(BFloat16()))
     XCTAssertEqual(BFloat16.zero, BFloat16())
     XCTAssertEqual(BFloat16.zero, BFloat16(0))
@@ -208,25 +208,25 @@ final class BFloat16Tests: XCTestCase {
     }
   }
   
-    func testBinaryOperations() {
-      property("BFloat16 binary ops") <- forAll {
-        (a: BFloat16, b: BFloat16, op: BinaryOp) in
-        switch op {
-        case .add:
-          return a + b == BFloat16(Float(a) + Float(b))
-        case .sub:
-          return a - b == BFloat16(Float(a) - Float(b))
-        case .mul:
-          return a * b == BFloat16(Float(a) * Float(b))
-        case .div:
-          guard _fastPath(b != 0.0) else { return true }
-          return a / b == BFloat16(Float(a) / Float(b))
-        case .remainder:
-          guard _fastPath(b != 0.0) else { return true }
-          return a.remainder(dividingBy: b) == BFloat16(Float(a).remainder(dividingBy: Float(b)))
-        }
+  func testBinaryOperations() {
+    property("BFloat16 binary ops") <- forAll {
+      (a: BFloat16, b: BFloat16, op: BinaryOp) in
+      switch op {
+      case .add:
+        return a + b == BFloat16(Float(a) + Float(b))
+      case .sub:
+        return a - b == BFloat16(Float(a) - Float(b))
+      case .mul:
+        return a * b == BFloat16(Float(a) * Float(b))
+      case .div:
+        guard _fastPath(b != 0.0) else { return true }
+        return a / b == BFloat16(Float(a) / Float(b))
+      case .remainder:
+        guard _fastPath(b != 0.0) else { return true }
+        return a.remainder(dividingBy: b) == BFloat16(Float(a).remainder(dividingBy: Float(b)))
       }
     }
+  }
   
   func testTernaryOperations() {
     property("BFloat16 ternary ops") <- forAll {
@@ -238,8 +238,8 @@ final class BFloat16Tests: XCTestCase {
     }
   }
   
-  func testOredering() {
-    property("BFloat16 binary ops") <- forAll {
+  func testOrdering() {
+    property("BFloat16 ordering") <- forAll {
       (a: BFloat16, b: BFloat16, op: OrdOp) in
       switch op {
       case .gt:

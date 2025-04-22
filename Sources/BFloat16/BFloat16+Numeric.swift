@@ -10,8 +10,8 @@ import bfloat16_c
 #endif
 
 extension BFloat16: ExpressibleByIntegerLiteral {
-  public init(integerLiteral value: UInt16) {
-    self = BFloat16(Float(value))
+  public init(integerLiteral value: Float.IntegerLiteralType) {
+    self = BFloat16(Float(integerLiteral: value))
   }
 }
 

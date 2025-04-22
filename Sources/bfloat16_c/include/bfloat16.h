@@ -24,9 +24,6 @@
 #   define __aio __inline__ __attribute__((__always_inline__, __nodebug__, __overloadable__))
 #endif
 
-#define BF16_FUNC __ai
-#define BF16_OFUNC __aio
-
 // TODO: compile with native bfloat support. target +bf16
 #define NATIVE_BF16_SUPPORT 0
 
@@ -47,6 +44,8 @@ extern __ai bf16_t bf16_nan(void);
 extern __aio bf16_t bf16_from(const double);
 extern __aio bf16_t bf16_from(const float);
 extern __aio bf16_t bf16_from(const uint16_t);
+
+extern __ai bool bf16_isnan(const bf16_t v);
 
 extern __ai double to_f64(const bf16_t);
 extern __ai float to_f32(const bf16_t);

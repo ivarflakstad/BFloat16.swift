@@ -2,7 +2,7 @@
 //  BFloatTests.swift
 //  BFloatTests
 //
-//  Created by Ivar Arning Flakstad on 23/02/2024.
+//  Created by Ivar Flakstad on 23/02/2024.
 //
 import SwiftCheck
 import XCTest
@@ -120,7 +120,11 @@ final class BFloat16Tests: XCTestCase {
     XCTAssertEqual(BFloat16(bitPattern: 0x0005), BFloat16(5.0 * tinyFloat))
   }
   
-  func testNanConversions() {
+  func testNan() {
+    XCTAssertNotEqual(BFloat16.nan, BFloat16.nan)
+    XCTAssertFalse(BFloat16.nan > BFloat16.nan)
+    XCTAssertFalse(BFloat16.nan < BFloat16.nan)
+      
     XCTAssert(BFloat16(Float.nan).isNaN)
     XCTAssert(BFloat16(Float.signalingNaN).isNaN)
     XCTAssert(BFloat16(-Float.nan).isNaN)
@@ -132,7 +136,7 @@ final class BFloat16Tests: XCTestCase {
   
   func testComparisons() {
     XCTAssertEqual(BFloat16.zero, BFloat16.zero)
-    XCTAssertLessThanOrEqual(BFloat16.neg_zero, BFloat16.zero)
+    XCTAssertEqual(BFloat16.zero, BFloat16.neg_zero)
     XCTAssertLessThan(BFloat16.zero, BFloat16.one)
     
     property("BFloat16 Equality is Reflexive") <- forAll { (i : BFloat16) in

@@ -22,9 +22,9 @@
 #define BF16_PI 0x4049
 #define BF16_EPSILON 0x3C00
 
-__ai bf16_t bf16_epsilon(void) { return BF16_EPSILON; };
-__ai bf16_t bf16_pi(void) { return BF16_PI; };
-__ai bf16_t bf16_nan(void) { return BF16_NAN; };
+__ai bf16_t bf16_epsilon(void) { return BF16_EPSILON; }
+__ai bf16_t bf16_pi(void) { return BF16_PI; }
+__ai bf16_t bf16_nan(void) { return BF16_NAN; }
 
 union float_bits {
   float f;
@@ -51,18 +51,22 @@ __aio bf16_t bf16_from(const float v) {
       return (fb.u >> 16) | 0x0040;
     }
   }
-};
+}
 
-__aio bf16_t bf16_from(const double v) { return bf16_from((float)v); };
+__aio bf16_t bf16_from(const double v) { return bf16_from((float)v); }
 // NOTE: without native bfloat support currently a noop
-__aio bf16_t bf16_from(const uint16_t v) { return (uint16_t)v; };
+__aio bf16_t bf16_from(const uint16_t v) { return (uint16_t)v; }
+
+__ai bool bf16_isnan(const bf16_t v) {
+  return (v & BF16_INF) == BF16_INF && (v & 0x007FU) != 0;
+}
 
 __ai float to_f32(const bf16_t v) {
 #if NATIVE_BF16_SUPPORT
   return (float)v;
 #else
   // TODO: ifs seem to be unecessary. Probably more performant to remove them.
-  if (v == BF16_NAN) {
+  if (bf16_isnan(v)) {
     return NAN;
   } else if (v == BF16_INF) {
     return INFINITY;
@@ -109,10 +113,31 @@ __ai bf16_t bf16_abs(const bf16_t v) {
 #endif
 }
 
-__ai bf16_t bf16_sqrt(const bf16_t v) { return bf16_from(sqrt(to_f32(v)));};
+__ai bf16_t bf16_sqrt(const bf16_t v) { return bf16_from(sqrt(to_f32(v)));}
 
-__ai bool equal(const bf16_t a, const bf16_t b) { return a == b; };
-__ai bool lt(const bf16_t a, const bf16_t b) { return to_f32(a) < to_f32(b); };
-__ai bool lte(const bf16_t a, const bf16_t b) { return to_f32(a) <= to_f32(b); };
-__ai bool gt(const bf16_t a, const bf16_t b) { return to_f32(a) > to_f32(b); };
-__ai bool gte(const bf16_t a, const bf16_t b) { return to_f32(a) >= to_f32(b); };
+__ai bool equal(const bf16_t a, const bf16_t b) {
+  if (bf16_isnan(a)) return 0;
+  if (bf16_isnan(b)) return 0;
+  if (((a &~ 0x8000) == 0) && ((b &~ 0x8000) == 0)) return 1;
+  return a == b;
+};
+__ai bool lt(const bf16_t a, const bf16_t b) {
+  if (bf16_isnan(a)) return 0;
+  if (bf16_isnan(b)) return 0;
+  bool a_is_negative = a & 0x8000;
+  bool b_is_negative = b & 0x8000;
+  
+  if (a_is_negative != b_is_negative) {
+    return a_is_negative && (a | b) &~ 0x8000;
+  }
+  return a_is_negative ? a > b : a < b;
+}
+__ai bool lte(const bf16_t a, const bf16_t b) {
+  return lt(a, b) || equal(a, b);
+}
+__ai bool gt(const bf16_t a, const bf16_t b) {
+  return lt(b, a);
+}
+__ai bool gte(const bf16_t a, const bf16_t b) {
+  return lte(b, a);
+}

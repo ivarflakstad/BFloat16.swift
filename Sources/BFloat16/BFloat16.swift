@@ -53,10 +53,7 @@ public struct BFloat16 {
   }
 }
 
-
-@inlinable public func abs(_ x: BFloat16) -> BFloat16 {
-  return x.sign == .minus ? -x : x
-}
+extension BFloat16: Sendable {}
 
 extension BFloat16: Strideable {
   public typealias Stride = BFloat16
@@ -71,3 +68,10 @@ extension BFloat16: Strideable {
     self + n
   }
 }
+
+// TODO: Move this to a separate file like Math.swift (and add other useful impls)
+@inlinable public func abs(_ x: BFloat16) -> BFloat16 {
+  return BFloat16(bf16_abs(bf16_t(x)))
+}
+
+

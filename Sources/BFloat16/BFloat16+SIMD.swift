@@ -14,7 +14,7 @@ extension BFloat16 : SIMDScalar {
     /// The number of scalars, or elements, in the vector.
     @_transparent public var scalarCount: Swift.Int {
       @_transparent get {
-        return _value.scalarCount
+        _value.scalarCount
       }
     }
     
@@ -49,7 +49,7 @@ extension BFloat16 : SIMDScalar {
     /// The number of scalars, or elements, in the vector.
     @_transparent public var scalarCount: Swift.Int {
       @_transparent get {
-        return _value.scalarCount
+        _value.scalarCount
       }
     }
     
@@ -84,7 +84,7 @@ extension BFloat16 : SIMDScalar {
     /// The number of scalars, or elements, in the vector.
     @_transparent public var scalarCount: Swift.Int {
       @_transparent get {
-        return _value.scalarCount
+        _value.scalarCount
       }
     }
     
@@ -119,7 +119,7 @@ extension BFloat16 : SIMDScalar {
     /// The number of scalars, or elements, in the vector.
     @_transparent public var scalarCount: Swift.Int {
       @_transparent get {
-        return _value.scalarCount
+        _value.scalarCount
       }
     }
     
@@ -154,7 +154,7 @@ extension BFloat16 : SIMDScalar {
     /// The number of scalars, or elements, in the vector.
     @_transparent public var scalarCount: Swift.Int {
       @_transparent get {
-        return _value.scalarCount
+        _value.scalarCount
       }
     }
     
@@ -189,7 +189,7 @@ extension BFloat16 : SIMDScalar {
     /// The number of scalars, or elements, in the vector.
     @_transparent public var scalarCount: Swift.Int {
       @_transparent get {
-        return _value.scalarCount
+        _value.scalarCount
       }
     }
     

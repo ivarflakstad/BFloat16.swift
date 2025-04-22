@@ -15,7 +15,7 @@ extension BFloat16: CustomStringConvertible {
   /// x` is always true.  For any NaN value, the property's value is "nan", and
   /// for positive and negative infinity its value is "inf" and "-inf".
   public var description: String {
-    return Float(self).description
+    Float(self).description
   }
 }
 
@@ -26,7 +26,7 @@ extension BFloat16: CustomDebugStringConvertible {
   /// This property has the same value as the `description` property, except
   /// that NaN values are printed in an extended format.
   public var debugDescription: String {
-    return Float(self).debugDescription
+    Float(self).debugDescription
   }
 }
 

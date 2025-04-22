@@ -58,7 +58,7 @@ extension BFloat16: Strideable {
   
   @_transparent
   public func distance(to other: Self) -> Self.Stride {
-    return other - self
+    other - self
   }
   
   @_transparent
@@ -69,7 +69,7 @@ extension BFloat16: Strideable {
 
 // TODO: Move this to a separate file like Math.swift (and add other useful impls)
 @inlinable public func abs(_ x: BFloat16) -> BFloat16 {
-  return BFloat16(bf16_abs(bf16_t(x)))
+  BFloat16(bf16_abs(bf16_t(x)))
 }
 
 

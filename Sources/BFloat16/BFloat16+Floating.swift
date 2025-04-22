@@ -148,7 +148,7 @@ extension BFloat16: FloatingPoint {
   }
   
   @inlinable public static var leastNonzeroMagnitude: BFloat16 {
-    return leastNormalMagnitude * ulpOfOne
+    leastNormalMagnitude * ulpOfOne
   }
   
   @inlinable public var sign: FloatingPointSign {
@@ -258,40 +258,40 @@ extension BFloat16: FloatingPoint {
   
   @inlinable public var isNormal: Bool {
     @inline(__always) get {
-      return exponentBitPattern > 0 && isFinite
+      exponentBitPattern > 0 && isFinite
     }
   }
   
   @inlinable public var isFinite: Bool {
     @inline(__always) get {
-      return exponentBitPattern < BFloat16._infinityExponent
+      exponentBitPattern < BFloat16._infinityExponent
     }
   }
   
   @inlinable public var isZero: Bool {
     @inline(__always) get {
-      return exponentBitPattern == 0 && significandBitPattern == 0
+      exponentBitPattern == 0 && significandBitPattern == 0
     }
   }
   @inlinable public var isSubnormal: Bool {
     @inline(__always) get {
-      return exponentBitPattern == 0 && significandBitPattern != 0
+      exponentBitPattern == 0 && significandBitPattern != 0
     }
   }
   @inlinable public var isInfinite: Bool {
     @inline(__always) get {
-      return bitPattern & 0x7FFF == 0x7F80
+      bitPattern & 0x7FFF == 0x7F80
     }
   }
   @inlinable public var isNaN: Bool {
     @inline(__always) get {
-      return bitPattern & 0x7FFF > 0x7F80
+      bitPattern & 0x7FFF > 0x7F80
     }
   }
   
   @inlinable public var isSignalingNaN: Bool {
     @inline(__always) get {
-      return isNaN && (significandBitPattern & BFloat16._quietNaNMask) == 0
+      isNaN && (significandBitPattern & BFloat16._quietNaNMask) == 0
     }
   }
   
@@ -372,41 +372,35 @@ extension BFloat16: BinaryFloatingPoint {
   }
   
   @inlinable public static var exponentBitCount: Int {
-    get {
-      return 8
-    }
+    get { 8 }
   }
   
   @inlinable public static var significandBitCount: Int {
-    get {
-      return 7
-    }
+    get { 7 }
   }
   
   @inlinable internal static var _infinityExponent: UInt16 {
-    @inline(__always) get { return 1 &<< (UInt(exponentBitCount) - 1) }
+    @inline(__always) get { 1 &<< (UInt(exponentBitCount) - 1) }
   }
   
   @inlinable internal static var _exponentBias: UInt16 {
-    @inline(__always) get { return _infinityExponent &>> 1 }
+    @inline(__always) get { _infinityExponent &>> 1 }
   }
   
   @inlinable internal static var _significandMask: UInt16 {
     @inline(__always) get {
-      return 1 &<< UInt16(significandBitCount) - 1
+      1 &<< UInt16(significandBitCount) - 1
     }
   }
   
   @inlinable internal static var _quietNaNMask: UInt16 {
     @inline(__always) get {
-      return 1 &<< UInt16(significandBitCount - 1)
+      1 &<< UInt16(significandBitCount - 1)
     }
   }
   
   @inlinable public var bitPattern: UInt16 {
-    @inline(__always) get {
-      return _value
-    }
+    @inline(__always) get { _value }
   }
   
   /// The raw encoding of the value's exponent field.
@@ -414,7 +408,7 @@ extension BFloat16: BinaryFloatingPoint {
   /// This value is unadjusted by the type's exponent bias.
   @inlinable public var exponentBitPattern: UInt16 {
     get {
-      return UInt16(
+      UInt16(
         bitPattern &>> UInt16(BFloat16.significandBitCount)
       ) & BFloat16._infinityExponent
     }
@@ -422,7 +416,7 @@ extension BFloat16: BinaryFloatingPoint {
   
   @inlinable public var significandBitPattern: UInt16 {
     get {
-      return bitPattern & BFloat16._significandMask
+      bitPattern & BFloat16._significandMask
     }
   }
   

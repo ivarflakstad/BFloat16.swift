@@ -34,7 +34,7 @@ extension BFloat16: Numeric {
   }
   
   public var magnitude: BFloat16 {
-    BFloat16(sign: .plus, exponent: self.exponent, significand: self.significand)
+    BFloat16(bf16_abs(bf16_t(self)))
   }
   
   public static func * (lhs: BFloat16, rhs: BFloat16) -> BFloat16 {
@@ -48,6 +48,6 @@ extension BFloat16: Numeric {
 
 extension BFloat16: SignedNumeric {
   prefix public static func - (operand: Self) -> Self {
-    return BFloat16(bf16_neg(bf16_t(operand)))
+    BFloat16(bf16_neg(bf16_t(operand)))
   }
 }

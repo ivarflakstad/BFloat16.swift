@@ -2,8 +2,6 @@
 //  BFloat16.swift
 //  BFloat16
 //
-//  Created by Ivar Flakstad on 21/04/2025.
-//
 // Based on swift impls:
 // https://github.com/swiftlang/swift/blob/814d2f834fb64319c7952d65cc78ee4707c41a60/stdlib/public/core/FloatingPointTypes.swift.gyb
 
@@ -208,7 +206,9 @@ extension BFloat16: FloatingPoint {
   }
   
   @inlinable @inline(__always) public mutating func formRemainder(dividingBy other: BFloat16) {
-    self = BFloat16(_stdlib_remainderf(Float(self), Float(other)))
+    var lhs = Float(self);
+    lhs.formRemainder(dividingBy: Float(other))
+    self = BFloat16(lhs)
   }
   
   @inlinable @inline(__always) public mutating func formTruncatingRemainder(dividingBy other: BFloat16) {

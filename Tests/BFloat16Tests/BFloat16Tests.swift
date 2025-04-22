@@ -91,9 +91,9 @@ final class BFloat16Tests: XCTestCase {
     XCTAssertEqual(BFloat16.one, BFloat16(1))
     XCTAssertEqual(BFloat16.one, BFloat16(1.0))
     XCTAssertEqual(BFloat16.zero.sign, .plus)
-    XCTAssertEqual(BFloat16.neg_one, BFloat16(-1.0))
-    XCTAssertEqual(BFloat16.neg_zero, BFloat16(-0.0))
-    XCTAssertEqual(BFloat16.neg_zero.sign, .minus)
+    XCTAssertEqual(BFloat16.negativeOne, BFloat16(-1.0))
+    XCTAssertEqual(BFloat16.negativeZero, BFloat16(-0.0))
+    XCTAssertEqual(BFloat16.negativeZero.sign, .minus)
     XCTAssertEqual(BFloat16.infinity, BFloat16(Float.infinity))
     XCTAssertEqual(-BFloat16.infinity, BFloat16(-Float.infinity))
     
@@ -136,7 +136,7 @@ final class BFloat16Tests: XCTestCase {
   
   func testComparisons() {
     XCTAssertEqual(BFloat16.zero, BFloat16.zero)
-    XCTAssertEqual(BFloat16.zero, BFloat16.neg_zero)
+    XCTAssertEqual(BFloat16.zero, BFloat16.negativeZero)
     XCTAssertLessThan(BFloat16.zero, BFloat16.one)
     
     property("BFloat16 Equality is Reflexive") <- forAll { (i : BFloat16) in

@@ -2,16 +2,14 @@
 //  BFloat16+Numeric.swift
 //  BFloat16
 //
-//  Created by Ivar Flakstad on 21/04/2025.
-//
 
 #if SWIFT_PACKAGE
 import bfloat16_c
 #endif
 
 extension BFloat16: ExpressibleByIntegerLiteral {
-  public init(integerLiteral value: UInt16) {
-    self = BFloat16(Float(value))
+  public init(integerLiteral value: Float.IntegerLiteralType) {
+    self = BFloat16(Float(integerLiteral: value))
   }
 }
 
@@ -28,7 +26,11 @@ extension BFloat16: AdditiveArithmetic {
 
 extension BFloat16: Numeric {
   public init?<T>(exactly source: T) where T : BinaryInteger {
-    self = BFloat16(source)
+    let val = Float(exactly: source);
+    if val == nil {
+      return nil
+    }
+    self = BFloat16(val!)
   }
   
   public var magnitude: BFloat16 {

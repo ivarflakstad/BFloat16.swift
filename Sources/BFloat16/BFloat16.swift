@@ -2,8 +2,6 @@
 //  BFloat16.swift
 //  BFloat16
 //
-//  Created by Ivar Flakstad on 22/02/2024.
-//
 
 import Swift
 import SwiftShims
@@ -28,7 +26,7 @@ public struct BFloat16 {
   }
   
   @_transparent @inlinable @inline(__always)
-  init(bitPattern: UInt16) {
+  public init(bitPattern: UInt16) {
     _value = bf16_from(bitPattern)
   }
   
@@ -36,7 +34,7 @@ public struct BFloat16 {
     BFloat16()
   }
   
-  @inlinable public static var neg_zero: BFloat16 {
+  @inlinable public static var negativeZero: BFloat16 {
     BFloat16(bitPattern: 0x8000)
   }
   
@@ -44,7 +42,7 @@ public struct BFloat16 {
     BFloat16(bitPattern: 0x3F80)
   }
   
-  @inlinable public static var neg_one: BFloat16 {
+  @inlinable public static var negativeOne: BFloat16 {
     BFloat16(bitPattern: 0xBF80)
   }
   

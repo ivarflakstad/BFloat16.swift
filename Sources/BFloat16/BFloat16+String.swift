@@ -2,8 +2,6 @@
 //  BFloat16+String.swift
 //  BFloat16
 //
-//  Created by Ivar Flakstad on 21/04/2025.
-//
 // Simply using the Float impls so that I don't have to implement this monstrosity:
 // https://github.com/swiftlang/swift/blob/77eb4f05ec3aeaa78a268aa9d17d32d94de24991/stdlib/public/runtime/SwiftDtoa.cpp#L363
 

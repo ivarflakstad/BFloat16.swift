@@ -2,8 +2,6 @@
 //  bfloat16.h
 //  BFloat16
 //
-//  Created by Ivar on 19/04/2025.
-//
 #ifndef bf16_h
 #define bf16_h
 
@@ -66,8 +64,6 @@ extern __ai bool lt(const bf16_t, const bf16_t);
 extern __ai bool lte(const bf16_t, const bf16_t);
 extern __ai bool gt(const bf16_t, const bf16_t);
 extern __ai bool gte(const bf16_t, const bf16_t);
-
-
 
 #endif
 

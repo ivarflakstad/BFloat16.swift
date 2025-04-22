@@ -2,8 +2,6 @@
 //  BFloat16+SIMD.swift
 //  BFloat16
 //
-//  Created by Ivar Flakstad on 21/04/2025.
-//
 
 extension BFloat16 : SIMDScalar {
   

@@ -2,8 +2,6 @@
 //  bfloat16.c
 //  BFloat16
 //
-//  Created by Ivar on 19/04/2025.
-//
 
 #include "bfloat16.h"
 #include <stdint.h>

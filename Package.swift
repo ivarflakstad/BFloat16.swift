@@ -31,7 +31,7 @@ import PackageDescription
 let package = Package(
   name: "BFloat16",
   products: [
-    .library(name: "BFloat16", targets: ["BFloat16", "bfloat16_c"]),
+    .library(name: "BFloat16", targets: ["BFloat16", "bfloat16_c"])
   ],
   dependencies: [
     .package(url: "https://github.com/typelift/SwiftCheck.git", from: "0.12.0")
@@ -45,6 +45,6 @@ let package = Package(
     .testTarget(
       name: "BFloat16Tests",
       dependencies: ["BFloat16", "SwiftCheck"]
-    )
+    ),
   ]
 )

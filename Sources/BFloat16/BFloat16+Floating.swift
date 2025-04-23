@@ -372,7 +372,7 @@ extension BFloat16: BinaryFloatingPoint {
   }
   
   @inlinable public static var exponentBitCount: Int {
-    get { 8 }
+    8
   }
   
   @inlinable public static var significandBitCount: Int {

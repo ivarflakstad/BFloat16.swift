@@ -24,12 +24,11 @@ extension BFloat16: AdditiveArithmetic {
 }
 
 extension BFloat16: Numeric {
-  public init?<T>(exactly source: T) where T: BinaryInteger {
-    let val = Float(exactly: source)
-    if val == nil {
+  public init?<T>(exactly source: T) where T : BinaryInteger {
+    guard let val = Float(exactly: source) else {
       return nil
     }
-    self = BFloat16(val!)
+    self = BFloat16(val)
   }
 
   public var magnitude: BFloat16 {

@@ -26,7 +26,7 @@ enum UnaryOp: CaseIterable {
   var id: Self {
     return self
   }
-  case neg, abs, sqrt, round
+  case neg, abs, sqrt, ceil, floor, round, trunc, modf, frexp
 }
 
 enum BinaryOp: CaseIterable {
@@ -196,18 +196,34 @@ final class BFloat16Tests: XCTestCase {
     }
   }
   
-  func testUnaryOperations() {    
+  func testUnaryOperations() {
     property("BFloat16 unary ops") <- forAll {
-      (a: BFloat16, op: UnaryOp) in
+      (x: BFloat16, op: UnaryOp) in
       switch op {
       case .neg:
-        return -a == BFloat16(-Float(a))
+        return -x == BFloat16(-Float(x))
       case .abs:
-        return abs(a) == BFloat16(abs(Float(a)))
+        return abs(x) == BFloat16(abs(Float(x)))
       case .sqrt:
-        return a.squareRoot() == BFloat16(Float(a).squareRoot())
+        return sqrt(x) == BFloat16(sqrt(Float(x)))
+      case .ceil:
+        return ceil(x) == BFloat16(ceil(Float(x)))
+      case .floor:
+        return floor(x) == BFloat16(floor(Float(x)))
       case .round:
-        return a.rounded() == BFloat16(Float(a).rounded())
+        return round(x) == BFloat16(round(Float(x)))
+      case .trunc:
+        return trunc(x) == BFloat16(trunc(Float(x)))
+      case .modf:
+        let (bf_i, bf_f) = modf(x);
+        let (i, f) = modf(Float(x));
+        return bf_i == BFloat16(i) && bf_f == BFloat16(f)
+      case .frexp:
+        let (bf_f, bf_i) = frexp(x);
+        guard x.isFinite && x != 0 else {
+          return x == bf_f && bf_i == 0
+        }
+        return bf_f == x.significand / 2 && bf_i == x.exponent + 1
       }
     }
   }
@@ -227,7 +243,7 @@ final class BFloat16Tests: XCTestCase {
         return a / b == BFloat16(Float(a) / Float(b))
       case .remainder:
         guard _fastPath(b != 0.0) else { return true }
-        return a.remainder(dividingBy: b) == BFloat16(Float(a).remainder(dividingBy: Float(b)))
+        return remainder(a, b) == BFloat16(remainder(Float(a), Float(b)))
       }
     }
   }
@@ -237,7 +253,7 @@ final class BFloat16Tests: XCTestCase {
       (a: BFloat16, b: BFloat16, c: BFloat16, op: TernaryOp) in
       switch op {
       case .fma:
-        return a.addingProduct(b, b) == BFloat16(Float(a).addingProduct(Float(b), Float(b)))
+        return fma(a, b, c) == BFloat16(fma(Float(a), Float(b), Float(c)))
       }
     }
   }

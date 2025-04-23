@@ -67,9 +67,3 @@ extension BFloat16: Strideable {
   }
 }
 
-// TODO: Move this to a separate file like Math.swift (and add other useful impls)
-@inlinable public func abs(_ x: BFloat16) -> BFloat16 {
-  BFloat16(bf16_abs(bf16_t(x)))
-}
-
-

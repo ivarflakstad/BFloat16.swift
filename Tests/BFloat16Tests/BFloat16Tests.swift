@@ -200,6 +200,20 @@ final class BFloat16Tests: XCTestCase {
       }
   }
 
+  func testRoundtripStringConversion() {
+    property("BFloat16 roundtrip string conversion")
+      <- forAll { (val: BFloat16) in
+        guard let roundtrip = BFloat16(val.description) else {
+          return false
+        }
+        if val.isNaN {
+          return roundtrip.isNaN && val.sign == roundtrip.sign
+        } else {
+          return val == roundtrip
+        }
+      }
+  }
+
   func testUnaryOperations() {
     property("BFloat16 unary ops")
       <- forAll {

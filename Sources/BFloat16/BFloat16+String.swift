@@ -38,3 +38,12 @@ extension BFloat16: TextOutputStreamable {
     Float(self).write(to: &target)
   }
 }
+
+extension BFloat16: LosslessStringConvertible {
+
+  /// Creates a new instance from the given string.
+  @inlinable public init?<S: StringProtocol>(_ description: S) {
+    guard let float = Float(description) else { return nil }
+    self = BFloat16(float)
+  }
+}

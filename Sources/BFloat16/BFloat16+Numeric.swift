@@ -25,10 +25,9 @@ extension BFloat16: AdditiveArithmetic {
 
 extension BFloat16: Numeric {
   public init?<T>(exactly source: T) where T : BinaryInteger {
-    guard let val = Float(exactly: source) else {
-      return nil
-    }
-    self = BFloat16(val)
+    guard let float = Float(exactly: source),
+          let result = BFloat16(exactly: float) else { return nil }
+    self = result
   }
 
   public var magnitude: BFloat16 {

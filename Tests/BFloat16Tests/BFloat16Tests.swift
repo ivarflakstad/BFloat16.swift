@@ -6,6 +6,7 @@
 //
 import SwiftCheck
 import XCTest
+import Foundation
 
 @testable import BFloat16
 
@@ -98,16 +99,30 @@ final class BFloat16Tests: XCTestCase {
     XCTAssertEqual(BFloat16.negativeZero.sign, .minus)
     XCTAssertEqual(BFloat16.infinity, BFloat16(Float.infinity))
     XCTAssertEqual(-BFloat16.infinity, BFloat16(-Float.infinity))
+      
+    XCTAssertEqual(BFloat16(exactly: 200 as Int), BFloat16(200.0))
+    XCTAssertEqual(BFloat16(exactly: Float(7.5)), BFloat16(7.5))
+    XCTAssertEqual(BFloat16(exactly: Double(7.5)), BFloat16(7.5))
+    XCTAssertEqual(BFloat16(exactly: CGFloat(7.5)), BFloat16(7.5))
+    XCTAssertNil(BFloat16(exactly: 7.0001 as Float))
 
     XCTAssertEqual(BFloat16(-Float(1.0)).sign, .minus)
     XCTAssertEqual(BFloat16(Float(1.0)).sign, .plus)
     XCTAssert(BFloat16(Float.nan).isNaN)
+    XCTAssertNil(BFloat16(exactly: Float.nan))
+    XCTAssertNil(BFloat16(exactly: Double.nan))
+    XCTAssertNil(BFloat16(exactly: CGFloat.nan))
   }
 
   func testToFloat() {
     let exact = BFloat16(7.0)
     XCTAssertEqual(Float(exact), 7.0)
 
+    XCTAssertEqual(Float(exactly: exact), Float(exact))
+    XCTAssertEqual(CGFloat(exactly: exact), CGFloat(exact))
+    XCTAssertEqual(Float(Double(exact)), Float(exact))
+    XCTAssertEqual(Double(exactly: exact), Double(exact))
+      
     // 7.1 is NOT exactly representable in 16-bit, it's rounded
     let inexact = BFloat16(7.1)
     let diff = abs(Float(inexact) - 7.1)
@@ -120,6 +135,21 @@ final class BFloat16Tests: XCTestCase {
 
     XCTAssertEqual(BFloat16(bitPattern: 0x0001), BFloat16(tinyFloat))
     XCTAssertEqual(BFloat16(bitPattern: 0x0005), BFloat16(5.0 * tinyFloat))
+      
+    XCTAssertNil(Float(exactly: BFloat16.nan))
+    XCTAssertNil(Double(exactly: BFloat16.nan))
+    XCTAssertNil(CGFloat(exactly: BFloat16.nan))
+  }
+    
+  func testToInt() {
+    let exact = BFloat16(7.0)
+    XCTAssertEqual(Int(exact), 7)
+    XCTAssertEqual(Int(exactly: exact), 7)
+      
+    let inexact = BFloat16(6.5)
+    XCTAssertEqual(Int(inexact), 6)
+    XCTAssertNil(Int(exactly: inexact))
+    XCTAssertNil(Int(exactly: BFloat16.nan))
   }
 
   func testNan() {

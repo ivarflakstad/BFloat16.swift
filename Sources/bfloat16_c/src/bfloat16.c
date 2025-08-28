@@ -53,7 +53,7 @@ __aio bf16_t bf16_from(const float v) {
 
 __aio bf16_t bf16_from(const double v) { return bf16_from((float)v); }
 // NOTE: without native bfloat support currently a noop
-__aio bf16_t bf16_from(const uint16_t v) { return (uint16_t)v; }
+__aio bf16_t bf16_from(const uint16_t v) { return (bf16_t)v; }
 
 __ai bool bf16_isnan(const bf16_t v) {
   return (v & BF16_INF) == BF16_INF && (v & 0x007FU) != 0;

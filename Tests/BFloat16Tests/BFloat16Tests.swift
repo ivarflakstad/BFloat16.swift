@@ -132,7 +132,7 @@ final class BFloat16Tests: XCTestCase {
     let inexact = BFloat16(7.1)
     let diff = abs(Float(inexact) - 7.1)
     // diff must be <= 4 * EPSILON, as 7 has two more significant bits than 1
-    XCTAssert(diff <= 4.0 * Float(BFloat16.epsilon))
+    XCTAssert(diff <= 4.0 * Float(BFloat16.ulpOfOne))
 
     let tinyFloat = Float(bitPattern: 0x0001_0000)
     XCTAssertEqual(Float(BFloat16(bitPattern: 0x0001)), tinyFloat)

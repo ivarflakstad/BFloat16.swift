@@ -41,6 +41,7 @@ let package = Package(
     .target(
       name: "BFloat16",
       dependencies: ["bfloat16_c"],
+      resources: [.process("PrivacyInfo.xcprivacy")]
     ),
     .testTarget(
       name: "BFloat16Tests",

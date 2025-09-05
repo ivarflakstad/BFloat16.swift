@@ -112,6 +112,11 @@ final class BFloat16Tests: XCTestCase {
     XCTAssertNil(BFloat16(exactly: Float.nan))
     XCTAssertNil(BFloat16(exactly: Double.nan))
     XCTAssertNil(BFloat16(exactly: CGFloat.nan))
+      
+    XCTAssertEqual(BFloat16.leastNonzeroMagnitude.bitPattern, 1)
+    XCTAssertEqual(BFloat16.infinity.nextDown, BFloat16.greatestFiniteMagnitude)
+    XCTAssertFalse(BFloat16.infinity.isFinite)
+    XCTAssertTrue(BFloat16.greatestFiniteMagnitude.isFinite)
   }
 
   func testToFloat() {

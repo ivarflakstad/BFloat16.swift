@@ -136,11 +136,11 @@ extension BFloat16: FloatingPoint {
   }
 
   @inlinable public static var ulpOfOne: BFloat16 {
-    return 0x1.0p-8
+    return 0x1.0p-7
   }
 
   @inlinable public static var leastNormalMagnitude: BFloat16 {
-    0x1.0p-14
+    0x1.0p-126
   }
 
   @inlinable public static var leastNonzeroMagnitude: BFloat16 {
@@ -356,7 +356,7 @@ extension BFloat16: BinaryFloatingPoint {
   }
 
   @inlinable internal static var _infinityExponent: UInt16 {
-    1 &<< (UInt(exponentBitCount) - 1)
+    1 &<< UInt16(exponentBitCount) - 1
   }
 
   @inlinable internal static var _exponentBias: UInt16 {

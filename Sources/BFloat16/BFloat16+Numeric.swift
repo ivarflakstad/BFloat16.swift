@@ -47,4 +47,8 @@ extension BFloat16: SignedNumeric {
   prefix public static func - (operand: Self) -> Self {
     BFloat16(bf16_neg(bf16_t(operand)))
   }
+    
+  @inlinable public mutating func negate() {
+    self = -self
+  }
 }

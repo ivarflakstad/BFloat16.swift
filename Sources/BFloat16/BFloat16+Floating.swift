@@ -21,7 +21,10 @@ extension bf16_t {
 }
 
 extension Float {
-  /// BFloat16 to Float via C binding.
+  /// Creates a new instance that matches the given value.
+  ///
+  /// NaN will be converted to a regular NaN without the payload.
+  /// All other values will be represented exactly.
   @inlinable @inline(__always)
   public init(_ value: BFloat16) {
     self = to_f32(bf16_t(value))
@@ -371,6 +374,7 @@ extension BFloat16: BinaryFloatingPoint {
     1 &<< UInt16(significandBitCount - 1)
   }
 
+  /// The bit pattern of the value’s encoding.
   @inlinable public var bitPattern: UInt16 {
     _value
   }

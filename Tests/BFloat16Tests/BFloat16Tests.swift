@@ -248,6 +248,19 @@ final class BFloat16Tests: XCTestCase {
         }
       }
   }
+    
+  @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+  func testRoundtripAtomic() {
+    property("BFloat16 roundtrip identity check")
+      <- forAll { (val: BFloat16) in
+        let roundtrip = BFloat16.decodeAtomicRepresentation(BFloat16.encodeAtomicRepresentation(val))
+        if val.isNaN {
+          return roundtrip.isNaN && val.sign == roundtrip.sign
+        } else {
+          return val == roundtrip
+        }
+      }
+  }
 
   func testUnaryOperations() {
     property("BFloat16 unary ops")

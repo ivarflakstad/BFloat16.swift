@@ -34,7 +34,7 @@ let package = Package(
     .library(name: "BFloat16", targets: ["BFloat16", "bfloat16_c"])
   ],
   dependencies: [
-    .package(url: "https://github.com/typelift/SwiftCheck.git", from: "0.12.0")
+    .package(url: "https://github.com/x-sheep/swift-property-based.git", from: "1.0.1")
   ],
   targets: [
     .target(name: "bfloat16_c"),
@@ -45,7 +45,7 @@ let package = Package(
     ),
     .testTarget(
       name: "BFloat16Tests",
-      dependencies: ["BFloat16", "SwiftCheck"]
+      dependencies: ["BFloat16", .product(name: "PropertyBased", package: "swift-property-based")]
     ),
   ]
 )

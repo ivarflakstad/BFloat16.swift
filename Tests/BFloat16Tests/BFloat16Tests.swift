@@ -45,6 +45,8 @@ final class BFloat16Tests {
     #expect(BFloat16.negativeZero.sign == .minus)
     #expect(BFloat16.infinity == BFloat16(Float.infinity))
     #expect(-BFloat16.infinity == BFloat16(-Float.infinity))
+    #expect(BFloat16(Float.greatestFiniteMagnitude) == BFloat16.infinity)
+    #expect(BFloat16(-Float.greatestFiniteMagnitude) == -BFloat16.infinity)
 
     #expect(BFloat16(exactly: 200 as Int) == BFloat16(200.0))
     #expect(BFloat16(exactly: Float(7.5)) == BFloat16(7.5))

@@ -20,4 +20,14 @@ extension BNNSDataType {
         BNNSDataTypeBFloat16
     }
 }
+
+@available(macOS 26.0, iOS 26.0, tvOS 26.0, watchOS 26.0, *)
+extension BFloat16: BNNSGraph.Builder.OperationParameter {
+    /// Returns a tensor that contains this `BFloat16` value as a constant.
+    /// - Parameter builder: The builder to use.
+    /// - Returns: A newly registered tensor.
+    @inlinable public func graphBuilderTensor(_ builder: BNNSGraph.Builder) -> BNNSGraph.Builder.Tensor<BFloat16> {
+        builder.constant(value: self)
+    }
+}
 #endif

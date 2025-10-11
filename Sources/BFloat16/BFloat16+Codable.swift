@@ -27,15 +27,6 @@ extension BFloat16: Codable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     let float = try container.decode(Float.self)
-
-    guard float.isInfinite || float.isNaN || abs(float) <= Float(BFloat16.greatestFiniteMagnitude)
-    else {
-      throw DecodingError.dataCorrupted(
-        DecodingError.Context(
-          codingPath: container.codingPath,
-          debugDescription: "Parsed number \(float) does not fit in \(type(of: self))."))
-    }
-
     self.init(float)
   }
 }
